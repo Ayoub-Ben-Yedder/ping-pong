@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ping Pong</title>
+    <style>
+        body {
+            background-color: #373737;
+        }
+
+        canvas {
+            background-color: black;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="can" width="400" height="400"></canvas>
+    <script>
+        const canvas = document.getElementById('can');
+        const ctx = canvas.getContext('2d');
+
+        const width = ctx.canvas.width;
+        const height = ctx.canvas.height;
+
+        const player1 = {
+            x: 0,
+            y: 0,
+            width: 20,
+            height: 60,
+        }
+        const player2 = {
+            x: width-20,
+            y: 0,
+            width: 20,
+            height: 60,
+        }
+        const ball = {
+            x: width/2,
+            y: height/2,
+            radius: 10,
+            velocity: 3,
+        };
+        
+        function drawPlayer(player) {
+            ctx.fillStyle = "white";
+            ctx.beginPath();
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+            ctx.closePath();
+        }
+
+        function drawBall() {
+            ctx.beginPath();
+            ctx.fillStyle = "white";
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        function drawScore(){
+            ctx.font = "30px Arial";
+            ctx.fillText(score1, width/2-30, height - 50);
+            ctx.fillText(score2, width/2+15, height - 50);
+            ctx.setLineDash([5, 3]);/*dashes are 5px and spaces are 3px*/
+            ctx.strokeStyle = "white";
+            ctx.beginPath();
+            ctx.moveTo(width/2,0);
+            ctx.lineTo(width/2, height);
+            ctx.stroke();
+        }
+
+        function updatePlayer1() {
+            canvas.onmousemove = (e) => {
+                var rect = canvas.getBoundingClientRect();
+                player1.y = (e.clientY - rect.top) / (rect.bottom - rect.top) * canvas.height;
+            }
+        }
+
+        function updatePlayer2(){
+            player2.y = ball.y-(player2.height/2);
+        }
+        
+        const startingAngle = Math.PI / 180 * Math.floor(Math.random() * 360);
+        let dx = Math.cos(startingAngle) * ball.velocity;
+        let dy = Math.sin(startingAngle) * ball.velocity;
+
+        function BallPlayerCollision(player) {
+            if (
+                ball.x + ball.radius > player.x &&
+                ball.x - ball.radius < player.x + player.width &&
+                ball.y + ball.radius > player.y &&
+                ball.y - ball.radius < player.y + player.height
+            ) {
+                return true;
+            }
+            return false;
+        }
+        
+        var score1 = 0;
+        var score2 = 0;
+
+        function updateBall() {
+            const ball_hit_bottom_border = ball.y > height - ball.radius;
+            const ball_hit_top_border = ball.y < ball.radius;
+            if (ball_hit_bottom_border || ball_hit_top_border) {
+                dy = -dy;
+            }
+
+            const ball_hit_left_border = ball.x < ball.radius;
+            const ball_hit_right_border = ball.x > width - ball.radius;
+            if (ball_hit_left_border || ball_hit_right_border) {
+                dx = -dx;
+            }
+
+            ctx.font = "30px Arial";
+            
+            if (ball_hit_left_border){
+                ctx.fillText("YOU LOST", width/2 - 70, 0 + 50);
+                fin = true;
+            }
+            if (ball_hit_right_border){
+                ctx.fillText("YOU WON", width/2 - 80, 0 + 50);
+                fin = true;
+            }
+
+            if (BallPlayerCollision(player1)||BallPlayerCollision(player2))
+                dx = -dx;
+
+            if (BallPlayerCollision(player1))
+                score1 += 1;
+            if (BallPlayerCollision(player2))
+                score2 += 1;
+            ball.x += dx;
+            ball.y += dy;
+        }
+
+        
+
+        var fin = false;
+        function renderFrame() {
+            if(!fin){
+                ctx.clearRect(0, 0, width, height);
+                updateBall();
+                updatePlayer1();
+                updatePlayer2();
+                drawBall();
+                drawPlayer(player1);
+                drawPlayer(player2);
+                drawScore();
+        }}
+
+        setInterval(renderFrame, 10);
+    </script>
+</body>
+
+</html>
